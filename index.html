@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zebra Bluetooth - Móvil</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 15px;
+            background: #f5f5f5;
+            font-size: 16px;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .status {
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+            font-weight: bold;
+            text-align: center;
+        }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+        .warning { background: #fff3cd; color: #856404; }
+        .info { background: #d1ecf1; color: #0c5460; }
+        
+        button {
+            width: 100%;
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 15px;
+            margin: 8px 0;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        button:hover { background: #0056b3; }
+        button:disabled { 
+            background: #6c757d; 
+            cursor: not-allowed; 
+        }
+        
+        .log {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+            height: 300px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 12px;
+            white-space: pre-wrap;
+        }
+        
+        input[type="text"] {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+        
+        .device-info {
+            background: #e9ecef;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 14px;
+        }
+        
+        .test-group {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        
+        .test-group h3 {
+            margin-top: 0;
+            color: #495057;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🖨️ Zebra Bluetooth Test</h1>
+        <p style="text-align: center; color: #666;">Dispositivo: D6N250950239</p>
+        
+        <div id="bluetoothStatus" class="status info">
+            ℹ️ Verificando Bluetooth...
+        </div>
+        
+        <div class="test-group">
+            <h3>🔍 Conexión</h3>
+            <button onclick="connectAndTest()">🔗 Conectar y Probar</button>
+            <button onclick="quickPrintTest()">🖨️ Test Rápido Impresión</button>
+            <button onclick="disconnect()">❌ Desconectar</button>
+        </div>
+        
+        <div class="test-group">
+            <h3>📤 Comandos Personalizados</h3>
+            <input type="text" id="customCmd" placeholder="Comando ZPL" value="^XA^FO50,50^A0N,30,30^FDTest Móvil^FS^XZ">
+            <button onclick="sendCustom()">📤 Enviar</button>
+        </div>
+        
+        <div class="test-group">
+            <h3>📋 Log</h3>
+            <button onclick="clearLog()">🗑️ Limpiar Log</button>
+            <div id="log" class="log">Esperando comandos...\n</div>
+        </div>
+        
+        <div id="deviceInfo" class="device-info" style="display: none;"></div>
+    </div>
+
+    <script>
+        let device = null;
+        let server = null;
+        let writeCharacteristic = null;
+        
+        // UUIDs de la Zebra
+        const SERVICE_UUID = '00001801-0000-1000-8000-00805f9b34fb';
+        const CHAR_UUID = '00002b29-0000-1000-8000-00805f9b34fb';
+        
+        function log(message) {
+            const logEl = document.getElementById('log');
+            const timestamp = new Date().toLocaleTimeString();
+            logEl.textContent += `[${timestamp}] ${message}\n`;
+            logEl.scrollTop = logEl.scrollHeight;
+            console.log(message);
+        }
+        
+        function updateStatus(message, type = 'info') {
+            const statusEl = document.getElementById('bluetoothStatus');
+            statusEl.className = `status ${type}`;
+            
+            const icons = {
+                success: '✅',
+                error: '❌',
+                warning: '⚠️',
+                info: 'ℹ️'
+            };
+            
+            statusEl.textContent = `${icons[type]} ${message}`;
+        }
+        
+        function clearLog() {
+            document.getElementById('log').textContent = 'Log limpio...\n';
+        }
+        
+        // Verificar compatibilidad al cargar
+        window.onload = function() {
+            if ('bluetooth' in navigator) {
+                log('✅ Web Bluetooth disponible');
+                updateStatus('Bluetooth disponible - Listo para conectar', 'success');
+            } else {
+                log('❌ Web Bluetooth no disponible');
+                updateStatus('Web Bluetooth no soportado en este dispositivo', 'error');
+            }
+        };
+        
+        async function connectToDevice() {
+            try {
+                log('🔍 Buscando impresora Zebra...');
+                updateStatus('Buscando dispositivo...', 'info');
+                
+                device = await navigator.bluetooth.requestDevice({
+                    filters: [{ name: 'D6N250950239' }],
+                    optionalServices: [SERVICE_UUID]
+                });
+                
+                log(`✅ Dispositivo encontrado: ${device.name}`);
+                
+                server = await device.gatt.connect();
+                log('✅ Conectado al servidor GATT');
+                
+                const service = await server.getPrimaryService(SERVICE_UUID);
+                log('✅ Servicio obtenido');
+                
+                writeCharacteristic = await service.getCharacteristic(CHAR_UUID);
+                log('✅ Característica de escritura obtenida');
+                
+                updateStatus('Conectado y listo para imprimir', 'success');
+                
+                // Mostrar info del dispositivo
+                showDeviceInfo();
+                
+                return true;
+                
+            } catch (error) {
+                log(`❌ Error conectando: ${error.message}`);
+                updateStatus('Error de conexión', 'error');
+                return false;
+            }
+        }
+        
+        function showDeviceInfo() {
+            const infoEl = document.getElementById('deviceInfo');
+            infoEl.style.display = 'block';
+            infoEl.innerHTML = `
+                <strong>📱 Información de Conexión:</strong><br>
+                Dispositivo: ${device.name}<br>
+                ID: ${device.id}<br>
+                Conectado: ${device.gatt.connected ? 'Sí' : 'No'}<br>
+                Plataforma: ${navigator.platform}
+            `;
+        }
+        
+        async function sendCommand(command) {
+            if (!writeCharacteristic) {
+                log('❌ No hay conexión activa');
+                updateStatus('Conecte primero al dispositivo', 'warning');
+                return false;
+            }
+            
+            try {
+                log(`📤 Enviando: ${command}`);
+                
+                const encoder = new TextEncoder();
+                const data = encoder.encode(command);
+                
+                await writeCharacteristic.writeValue(data);
+                
+                log('✅ Comando enviado correctamente');
+                updateStatus('Comando enviado a la impresora', 'success');
+                return true;
+                
+            } catch (error) {
+                log(`❌ Error enviando comando: ${error.message}`);
+                
+                // Intentar métodos alternativos
+                if (error.message.includes('GATT Error Unknown')) {
+                    log('🔄 Probando con chunks más pequeños...');
+                    return await sendCommandInChunks(command);
+                }
+                
+                updateStatus('Error enviando comando', 'error');
+                return false;
+            }
+        }
+        
+        async function sendCommandInChunks(command, chunkSize = 10) {
+            try {
+                const encoder = new TextEncoder();
+                const data = encoder.encode(command);
+                
+                log(`📦 Enviando en chunks de ${chunkSize} bytes...`);
+                
+                for (let i = 0; i < data.length; i += chunkSize) {
+                    const chunk = data.slice(i, i + chunkSize);
+                    await writeCharacteristic.writeValue(chunk);
+                    
+                    log(`  📤 Chunk ${Math.floor(i/chunkSize) + 1}/${Math.ceil(data.length/chunkSize)}`);
+                    
+                    // Pausa entre chunks
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                }
+                
+                log('✅ Comando enviado en chunks');
+                updateStatus('Comando enviado (chunked)', 'success');
+                return true;
+                
+            } catch (error) {
+                log(`❌ Error con chunks: ${error.message}`);
+                return false;
+            }
+        }
+        
+        // Funciones principales
+        async function connectAndTest() {
+            log('\n🚀 Iniciando conexión y test...');
+            
+            if (await connectToDevice()) {
+                log('🧪 Ejecutando test básico...');
+                await sendCommand('^XA^FO50,50^A0N,30,30^FDTest Conexión^FS^XZ');
+            }
+        }
+        
+        async function quickPrintTest() {
+            if (!writeCharacteristic) {
+                await connectToDevice();
+            }
+            
+            const testCommands = [
+                '^XA^FO50,50^A0N,25,25^FDTest 1^FS^XZ',
+                '^XA^FO50,50^A0N,25,25^FDTest Móvil^FS^XZ',
+                '^XA^FO50,50^A0N,25,25^FDHola Mundo^FS^XZ'
+            ];
+            
+            for (const cmd of testCommands) {
+                log(`\n🧪 Probando: ${cmd.substring(0, 30)}...`);
+                await sendCommand(cmd);
+                await new Promise(resolve => setTimeout(resolve, 1000));
+            }
+        }
+        
+        async function sendCustom() {
+            const cmd = document.getElementById('customCmd').value.trim();
+            if (!cmd) {
+                log('❌ Ingrese un comando');
+                return;
+            }
+            
+            if (!writeCharacteristic) {
+                log('⚠️ Conectando primero...');
+                if (!await connectToDevice()) {
+                    return;
+                }
+            }
+            
+            await sendCommand(cmd);
+        }
+        
+        function disconnect() {
+            if (device && device.gatt.connected) {
+                device.gatt.disconnect();
+                log('❌ Dispositivo desconectado');
+                updateStatus('Desconectado', 'info');
+            }
+            
+            device = null;
+            server = null;
+            writeCharacteristic = null;
+            document.getElementById('deviceInfo').style.display = 'none';
+        }
+        
+        // Manejar desconexión automática
+        window.addEventListener('beforeunload', disconnect);
+        
+        // Auto-reconexión si se desconecta
+        setInterval(() => {
+            if (device && !device.gatt.connected && writeCharacteristic) {
+                log('⚠️ Dispositivo desconectado, intentando reconectar...');
+                connectToDevice();
+            }
+        }, 10000);
+    </script>
+</body>
+</html>
