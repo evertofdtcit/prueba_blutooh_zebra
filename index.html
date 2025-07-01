@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🔬 Investigación Zebra ZD421</title>
+    <title>🖨️ Web Serial API - Zebra Test</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -18,9 +18,10 @@
             border-radius: 8px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
-        h1, h2, h3 {
+        h1 {
             color: #333;
             text-align: center;
+            margin-bottom: 20px;
         }
         .status {
             padding: 15px;
@@ -46,7 +47,10 @@
             cursor: pointer;
         }
         button:hover { background: #0056b3; }
-        button:disabled { background: #6c757d; cursor: not-allowed; }
+        button:disabled { 
+            background: #6c757d; 
+            cursor: not-allowed; 
+        }
         
         .log {
             background: #f8f9fa;
@@ -54,125 +58,98 @@
             padding: 15px;
             margin: 15px 0;
             border-radius: 5px;
-            height: 400px;
+            height: 300px;
             overflow-y: auto;
             font-family: monospace;
             font-size: 12px;
             white-space: pre-wrap;
         }
         
+        input[type="text"] {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+        
         .step {
             margin: 20px 0;
             padding: 15px;
-            border: 2px solid #007bff;
+            border: 2px solid #28a745;
             border-radius: 5px;
-            background: #f8f9ff;
+            background: #f8fff9;
         }
         
         .step h3 {
             margin-top: 0;
-            color: #007bff;
+            color: #28a745;
         }
         
-        .service-list {
-            background: #e9ecef;
-            padding: 10px;
-            margin: 10px 0;
-            border-radius: 5px;
-            font-family: monospace;
-            font-size: 12px;
-            max-height: 200px;
-            overflow-y: auto;
-        }
-        
-        .uuid-result {
+        .warning-box {
             background: #fff3cd;
             border: 1px solid #ffeaa7;
-            padding: 10px;
-            margin: 5px 0;
-            border-radius: 3px;
-            font-family: monospace;
-            font-size: 11px;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+            color: #856404;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>🔬 Investigación Profunda Zebra ZD421</h1>
-        <p style="text-align: center; color: #666;">Encontrando el servicio correcto para impresión</p>
+        <h1>🖨️ Web Serial API - Zebra ZD421</h1>
+        <p style="text-align: center; color: #666;">Prueba de impresión serial directa</p>
         
-        <div id="bluetoothStatus" class="status info">
-            ℹ️ Listo para investigar
+        <div id="serialStatus" class="status info">
+            ℹ️ Verificando Web Serial API...
+        </div>
+        
+        <div class="warning-box">
+            <strong>⚠️ IMPORTANTE:</strong><br>
+            1. <strong>Empareja tu Zebra ZD421</strong> con tu dispositivo desde Configuración Bluetooth<br>
+            2. <strong>Chrome/Edge únicamente</strong> - Safari no soporta Web Serial<br>
+            3. <strong>HTTPS requerido</strong> - localhost también funciona
         </div>
         
         <div class="step">
-            <h3>🕵️ PASO 1: Exploración Completa</h3>
-            <button onclick="step1_fullExploration()">🔍 Explorar TODOS los Servicios y UUIDs</button>
-            <p><strong>Objetivo:</strong> Mapear absolutamente todo lo que tiene disponible tu Zebra</p>
+            <h3>🔌 PASO 1: Conectar Puerto Serial</h3>
+            <button onclick="connectSerial()">🔗 Buscar y Conectar Puerto Serial</button>
+            <p><strong>Esto abrirá un diálogo para seleccionar tu Zebra emparejada</strong></p>
         </div>
         
         <div class="step">
-            <h3>🎯 PASO 2: Servicios de Impresión</h3>
-            <button onclick="step2_findPrintServices()">🖨️ Buscar Servicios de Impresión Específicos</button>
-            <p><strong>Objetivo:</strong> Probar UUIDs conocidos de impresoras Zebra</p>
+            <h3>🖨️ PASO 2: Pruebas de Impresión</h3>
+            <button onclick="testPrint()" disabled id="testBtn">📄 Test Simple</button>
+            <button onclick="testAdvanced()" disabled id="advancedBtn">🧪 Test Avanzado</button>
+            <button onclick="printStatus()" disabled id="statusBtn">📊 Estado Impresora</button>
         </div>
         
         <div class="step">
-            <h3>📡 PASO 3: Emparejamiento Avanzado</h3>
-            <button onclick="step3_advancedPairing()">🔗 Verificar Emparejamiento y Autenticación</button>
-            <p><strong>Objetivo:</strong> Asegurar que el dispositivo esté completamente autorizado</p>
+            <h3>📝 PASO 3: Comando Personalizado</h3>
+            <input type="text" id="customZpl" placeholder="Comando ZPL personalizado" value="^XA^FO50,50^A0N,30,30^FDWeb Serial!^FS^XZ">
+            <button onclick="sendCustomZpl()" disabled id="customBtn">📤 Enviar ZPL</button>
         </div>
         
         <div class="step">
-            <h3>🧪 PASO 4: Protocolos Alternativos</h3>
-            <button onclick="step4_alternativeProtocols()">📋 Probar Comandos No-ZPL</button>
-            <p><strong>Objetivo:</strong> ESC/POS, Raw, configuración previa</p>
+            <h3>❌ Desconectar</h3>
+            <button onclick="disconnectSerial()" disabled id="disconnectBtn">🔌 Desconectar Puerto</button>
         </div>
         
         <div class="step">
-            <h3>⚙️ PASO 5: Configuración Zebra</h3>
-            <button onclick="step5_zebraConfig()">🔧 Comandos de Configuración Zebra</button>
-            <p><strong>Objetivo:</strong> Activar modo Web Bluetooth si existe</p>
-        </div>
-        
-        <div class="step">
-            <h3>📋 Log de Investigación</h3>
+            <h3>📋 Log de Actividad</h3>
             <button onclick="clearLog()">🗑️ Limpiar Log</button>
-            <div id="log" class="log">Investigación iniciada...\n</div>
+            <div id="log" class="log">Web Serial API iniciado...\n</div>
         </div>
-        
-        <div id="results" class="service-list" style="display: none;"></div>
     </div>
 
     <script>
-        let device = null;
-        let server = null;
-        let discoveredServices = [];
-        
-        // UUIDs conocidos de impresoras
-        const KNOWN_PRINTER_UUIDS = {
-            // Serial Port Profile
-            serialPort: '00001101-0000-1000-8000-00805f9b34fb',
-            
-            // Zebra específicos
-            zebraService1: '00001801-0000-1000-8000-00805f9b34fb',
-            zebraService2: '0000180a-0000-1000-8000-00805f9b34fb',
-            zebraService3: '00001800-0000-1000-8000-00805f9b34fb',
-            
-            // Impresoras comunes
-            printerService: '49535343-fe7d-4ae5-8fa9-9fafd205e455',
-            printerTx: '49535343-1e4d-4bd9-ba61-23c647249616',
-            printerRx: '49535343-8841-43f4-a8d4-ecbe34729bb3',
-            
-            // Nordic UART Service (común en impresoras)
-            nordicUart: '6e400001-b5a3-f393-e0a9-e50e24dcca9e',
-            nordicTx: '6e400002-b5a3-f393-e0a9-e50e24dcca9e',
-            nordicRx: '6e400003-b5a3-f393-e0a9-e50e24dcca9e',
-            
-            // Otros servicios de comunicación
-            customService1: '0000fff0-0000-1000-8000-00805f9b34fb',
-            customService2: '0000ffe0-0000-1000-8000-00805f9b34fb'
-        };
+        let port = null;
+        let writer = null;
+        let reader = null;
         
         function log(message) {
             const logEl = document.getElementById('log');
@@ -183,7 +160,7 @@
         }
         
         function updateStatus(message, type = 'info') {
-            const statusEl = document.getElementById('bluetoothStatus');
+            const statusEl = document.getElementById('serialStatus');
             statusEl.className = `status ${type}`;
             
             const icons = {
@@ -200,361 +177,179 @@
             document.getElementById('log').textContent = 'Log limpio...\n';
         }
         
-        async function connectToDevice() {
+        function enableButtons(enable = true) {
+            document.getElementById('testBtn').disabled = !enable;
+            document.getElementById('advancedBtn').disabled = !enable;
+            document.getElementById('statusBtn').disabled = !enable;
+            document.getElementById('customBtn').disabled = !enable;
+            document.getElementById('disconnectBtn').disabled = !enable;
+        }
+        
+        // Verificar compatibilidad al cargar
+        window.onload = function() {
+            if ('serial' in navigator) {
+                log('✅ Web Serial API disponible');
+                updateStatus('Web Serial API disponible - Listo para conectar', 'success');
+            } else {
+                log('❌ Web Serial API no disponible en este navegador');
+                updateStatus('Web Serial API no soportado - Use Chrome/Edge', 'error');
+            }
+        };
+        
+        async function connectSerial() {
             try {
-                if (device && device.gatt.connected) {
-                    return true;
-                }
+                log('🔍 Solicitando puerto serial...');
+                updateStatus('Abriendo selector de puertos...', 'info');
                 
-                log('🔍 Conectando a Zebra ZD421...');
-                updateStatus('Conectando...', 'info');
-                
-                device = await navigator.bluetooth.requestDevice({
-                    filters: [{ name: 'D6N250950239' }],
-                    optionalServices: [
-                        ...Object.values(KNOWN_PRINTER_UUIDS),
-                        // Agregar algunos UUIDs genéricos más
-                        '0000180f-0000-1000-8000-00805f9b34fb', // Battery
-                        '0000181a-0000-1000-8000-00805f9b34fb', // Environmental Sensing
-                        '12345678-1234-5678-9abc-123456789abc'  // Custom UUID ejemplo
+                // Solicitar puerto con filtros para dispositivos Bluetooth
+                port = await navigator.serial.requestPort({
+                    filters: [
+                        // Filtros para dispositivos Bluetooth Serial
+                        { bluetoothServiceClassId: 0x1101 }, // Serial Port Profile
                     ]
                 });
                 
-                server = await device.gatt.connect();
-                log('✅ Conectado al servidor GATT');
-                updateStatus('Conectado - Listo para investigar', 'success');
+                log('✅ Puerto seleccionado');
+                log(`📱 Puerto: ${port.getInfo ? JSON.stringify(port.getInfo()) : 'Info no disponible'}`);
                 
-                return true;
+                // Configurar puerto serial
+                await port.open({ 
+                    baudRate: 9600,    // Velocidad común para Zebra
+                    dataBits: 8,
+                    stopBits: 1,
+                    parity: 'none',
+                    flowControl: 'none'
+                });
+                
+                log('🔌 Puerto abierto con configuración: 9600 baud, 8N1');
+                
+                // Obtener writer y reader
+                writer = port.writable.getWriter();
+                reader = port.readable.getReader();
+                
+                log('✅ Escritor y lector obtenidos');
+                updateStatus('Conectado - Listo para imprimir', 'success');
+                
+                enableButtons(true);
+                
+                // Iniciar lectura de respuestas (opcional)
+                startReading();
                 
             } catch (error) {
                 log(`❌ Error conectando: ${error.message}`);
                 updateStatus('Error de conexión', 'error');
+                
+                if (error.message.includes('No port selected')) {
+                    log('ℹ️ Usuario canceló la selección de puerto');
+                } else if (error.message.includes('bluetooth')) {
+                    log('💡 Tip: Asegúrate de que la Zebra esté emparejada en Bluetooth');
+                }
+            }
+        }
+        
+        async function startReading() {
+            try {
+                while (port?.readable) {
+                    const { value, done } = await reader.read();
+                    if (done) {
+                        break;
+                    }
+                    
+                    // Decodificar respuesta de la impresora
+                    const response = new TextDecoder().decode(value);
+                    if (response.trim()) {
+                        log(`📨 Respuesta: ${response.trim()}`);
+                    }
+                }
+            } catch (error) {
+                log(`📨 Lectura terminada: ${error.message}`);
+            }
+        }
+        
+        async function sendCommand(command) {
+            if (!writer) {
+                log('❌ No hay conexión serial activa');
+                return false;
+            }
+            
+            try {
+                log(`📤 Enviando: ${command}`);
+                
+                const encoder = new TextEncoder();
+                const data = encoder.encode(command);
+                
+                await writer.write(data);
+                
+                log('✅ Comando enviado por puerto serial');
+                return true;
+                
+            } catch (error) {
+                log(`❌ Error enviando comando: ${error.message}`);
                 return false;
             }
         }
         
-        // PASO 1: Exploración completa
-        async function step1_fullExploration() {
-            if (!await connectToDevice()) return;
+        async function testPrint() {
+            log('\n🧪 Test Simple - Etiqueta básica');
+            const command = '^XA^FO50,50^A0N,30,30^FDTest Serial^FS^XZ';
+            await sendCommand(command);
+        }
+        
+        async function testAdvanced() {
+            log('\n🧪 Test Avanzado - Con código de barras');
+            const command = `^XA
+^FO50,50^A0N,25,25^FDWeb Serial API^FS
+^FO50,100^BY2^BCN,70,Y,N,N^FD123456789^FS
+^FO50,200^A0N,20,20^FD${new Date().toLocaleString()}^FS
+^XZ`;
+            await sendCommand(command);
+        }
+        
+        async function printStatus() {
+            log('\n📊 Solicitando estado de impresora');
+            await sendCommand('~HS');
+        }
+        
+        async function sendCustomZpl() {
+            const command = document.getElementById('customZpl').value.trim();
+            if (!command) {
+                log('❌ Ingrese un comando ZPL');
+                return;
+            }
             
-            log('\n🕵️ PASO 1: EXPLORACIÓN COMPLETA DE SERVICIOS');
-            log('=' .repeat(50));
-            
+            log(`\n📝 Comando personalizado: ${command.substring(0, 30)}${command.length > 30 ? '...' : ''}`);
+            await sendCommand(command);
+        }
+        
+        async function disconnectSerial() {
             try {
-                const services = await server.getPrimaryServices();
-                log(`📋 TOTAL DE SERVICIOS ENCONTRADOS: ${services.length}`);
-                
-                discoveredServices = [];
-                
-                for (let i = 0; i < services.length; i++) {
-                    const service = services[i];
-                    log(`\n🔹 SERVICIO ${i + 1}/${services.length}:`);
-                    log(`   UUID: ${service.uuid}`);
-                    log(`   Instancia: ${service.instanceId || 'N/A'}`);
-                    
-                    const serviceData = {
-                        uuid: service.uuid,
-                        characteristics: []
-                    };
-                    
-                    try {
-                        const characteristics = await service.getCharacteristics();
-                        log(`   📝 Características: ${characteristics.length}`);
-                        
-                        for (let j = 0; j < characteristics.length; j++) {
-                            const char = characteristics[j];
-                            
-                            const properties = [];
-                            if (char.properties.read) properties.push('READ');
-                            if (char.properties.write) properties.push('WRITE');
-                            if (char.properties.writeWithoutResponse) properties.push('WRITE_NO_RESP');
-                            if (char.properties.notify) properties.push('NOTIFY');
-                            if (char.properties.indicate) properties.push('INDICATE');
-                            if (char.properties.broadcast) properties.push('BROADCAST');
-                            if (char.properties.authenticatedSignedWrites) properties.push('AUTH_WRITE');
-                            
-                            log(`     📌 Característica ${j + 1}: ${char.uuid}`);
-                            log(`        Propiedades: [${properties.join(', ')}]`);
-                            
-                            serviceData.characteristics.push({
-                                uuid: char.uuid,
-                                properties: char.properties,
-                                characteristic: char
-                            });
-                            
-                            // Si tiene READ, intentar leer valor
-                            if (char.properties.read) {
-                                try {
-                                    const value = await char.readValue();
-                                    const decoder = new TextDecoder();
-                                    const textValue = decoder.decode(value);
-                                    log(`        Valor actual: "${textValue}" (${value.byteLength} bytes)`);
-                                } catch (readError) {
-                                    log(`        Valor: No se puede leer (${readError.message})`);
-                                }
-                            }
-                        }
-                        
-                    } catch (charError) {
-                        log(`   ❌ Error obteniendo características: ${charError.message}`);
-                    }
-                    
-                    discoveredServices.push(serviceData);
+                if (reader) {
+                    await reader.cancel();
+                    await reader.releaseLock();
+                    reader = null;
                 }
                 
-                log('\n🎯 RESUMEN DE SERVICIOS CON CAPACIDAD DE ESCRITURA:');
-                log('-' .repeat(50));
-                
-                let writeableCount = 0;
-                for (const service of discoveredServices) {
-                    for (const char of service.characteristics) {
-                        if (char.properties.write || char.properties.writeWithoutResponse) {
-                            writeableCount++;
-                            log(`✍️ ${service.uuid} → ${char.uuid}`);
-                            log(`   [${char.properties.write ? 'WRITE' : ''}${char.properties.write && char.properties.writeWithoutResponse ? ', ' : ''}${char.properties.writeWithoutResponse ? 'WRITE_NO_RESP' : ''}]`);
-                        }
-                    }
+                if (writer) {
+                    await writer.releaseLock();
+                    writer = null;
                 }
                 
-                log(`\n📊 TOTAL CARACTERÍSTICAS ESCRIBIBLES: ${writeableCount}`);
-                updateStatus(`Exploración completa: ${services.length} servicios, ${writeableCount} escribibles`, 'success');
+                if (port) {
+                    await port.close();
+                    port = null;
+                }
+                
+                log('❌ Puerto serial desconectado');
+                updateStatus('Desconectado', 'info');
+                enableButtons(false);
                 
             } catch (error) {
-                log(`❌ Error en exploración: ${error.message}`);
-                updateStatus('Error en exploración', 'error');
+                log(`❌ Error desconectando: ${error.message}`);
             }
         }
         
-        // PASO 2: Buscar servicios de impresión específicos
-        async function step2_findPrintServices() {
-            if (!await connectToDevice()) return;
-            
-            log('\n🖨️ PASO 2: BUSCANDO SERVICIOS DE IMPRESIÓN ESPECÍFICOS');
-            log('=' .repeat(50));
-            
-            for (const [name, uuid] of Object.entries(KNOWN_PRINTER_UUIDS)) {
-                log(`\n🔍 Probando ${name}: ${uuid}`);
-                
-                try {
-                    const service = await server.getPrimaryService(uuid);
-                    log(`   ✅ ¡SERVICIO ENCONTRADO!`);
-                    
-                    try {
-                        const characteristics = await service.getCharacteristics();
-                        log(`   📝 Características: ${characteristics.length}`);
-                        
-                        for (const char of characteristics) {
-                            const props = [];
-                            if (char.properties.read) props.push('READ');
-                            if (char.properties.write) props.push('write');
-                            if (char.properties.writeWithoutResponse) props.push('writeNoResp');
-                            if (char.properties.notify) props.push('notify');
-                            
-                            log(`      📌 ${char.uuid} [${props.join(', ')}]`);
-                            
-                            // Si es escribible, probar con comando simple
-                            if (char.properties.write || char.properties.writeWithoutResponse) {
-                                log(`      🧪 Probando escritura simple...`);
-                                
-                                try {
-                                    const testData = new TextEncoder().encode('TEST');
-                                    
-                                    if (char.properties.writeWithoutResponse) {
-                                        await char.writeValueWithoutResponse(testData);
-                                        log(`      ✅ writeValueWithoutResponse FUNCIONÓ!`);
-                                    } else {
-                                        await char.writeValue(testData);
-                                        log(`      ✅ writeValue FUNCIONÓ!`);
-                                    }
-                                    
-                                    log(`      🎉 ¡POSIBLE SERVICIO DE IMPRESIÓN ENCONTRADO!`);
-                                    updateStatus(`Servicio de impresión encontrado: ${name}`, 'success');
-                                    
-                                } catch (writeError) {
-                                    log(`      ❌ Error escribiendo: ${writeError.message}`);
-                                }
-                            }
-                        }
-                        
-                    } catch (charError) {
-                        log(`   ❌ Error características: ${charError.message}`);
-                    }
-                    
-                } catch (serviceError) {
-                    log(`   ❌ Servicio no disponible`);
-                }
-            }
-        }
-        
-        // PASO 3: Emparejamiento avanzado
-        async function step3_advancedPairing() {
-            log('\n🔗 PASO 3: VERIFICACIÓN DE EMPAREJAMIENTO');
-            log('=' .repeat(50));
-            
-            if (!device) {
-                log('❌ No hay dispositivo conectado');
-                return;
-            }
-            
-            log(`📱 Dispositivo: ${device.name}`);
-            log(`🆔 ID: ${device.id}`);
-            log(`🔗 Conectado: ${device.gatt.connected}`);
-            
-            // Verificar si está emparejado en el sistema
-            if ('bluetooth' in navigator && 'getDevices' in navigator.bluetooth) {
-                try {
-                    const devices = await navigator.bluetooth.getDevices();
-                    log(`📋 Dispositivos emparejados: ${devices.length}`);
-                    
-                    const pairedDevice = devices.find(d => d.id === device.id);
-                    if (pairedDevice) {
-                        log(`✅ Dispositivo está emparejado en el sistema`);
-                    } else {
-                        log(`⚠️ Dispositivo NO está emparejado en el sistema`);
-                        log(`💡 Recomendación: Emparejar manualmente en configuración Bluetooth`);
-                    }
-                    
-                } catch (error) {
-                    log(`❌ Error verificando emparejamiento: ${error.message}`);
-                }
-            }
-            
-            // Información del GATT server
-            log(`\n🔧 Información GATT:`);
-            log(`   Estado: ${server ? 'Disponible' : 'No disponible'}`);
-            
-            if (server) {
-                log(`   Conectado: ${server.connected}`);
-            }
-        }
-        
-        // PASO 4: Protocolos alternativos
-        async function step4_alternativeProtocols() {
-            if (!await connectToDevice()) return;
-            
-            log('\n📋 PASO 4: PROBANDO PROTOCOLOS ALTERNATIVOS');
-            log('=' .repeat(50));
-            
-            // Buscar características escribibles
-            const writeableChars = [];
-            
-            if (discoveredServices.length === 0) {
-                log('⚠️ Ejecuta primero PASO 1 para explorar servicios');
-                return;
-            }
-            
-            for (const service of discoveredServices) {
-                for (const char of service.characteristics) {
-                    if (char.properties.write || char.properties.writeWithoutResponse) {
-                        writeableChars.push(char);
-                    }
-                }
-            }
-            
-            if (writeableChars.length === 0) {
-                log('❌ No hay características escribibles disponibles');
-                return;
-            }
-            
-            const protocols = [
-                { name: 'Texto Simple', data: 'Hello' },
-                { name: 'ESC/POS Reset', data: '\x1B\x40' },
-                { name: 'ESC/POS Print', data: '\x1B\x40Hello\x0A\x0A\x0A\x1D\x56\x41\x10' },
-                { name: 'ZPL Mínimo', data: '^XA^FDTest^FS^XZ' },
-                { name: 'Comando Raw', data: 'PRINT "Hello"' },
-                { name: 'Bytes Simples', data: '\x02\x48\x65\x6C\x6C\x6F\x03' }
-            ];
-            
-            for (const protocol of protocols) {
-                log(`\n🧪 Probando: ${protocol.name}`);
-                
-                for (const char of writeableChars) {
-                    log(`   📝 En característica: ${char.uuid}`);
-                    
-                    try {
-                        const data = new TextEncoder().encode(protocol.data);
-                        
-                        if (char.properties.writeWithoutResponse) {
-                            await char.characteristic.writeValueWithoutResponse(data);
-                            log(`   ✅ writeValueWithoutResponse exitoso`);
-                        } else {
-                            await char.characteristic.writeValue(data);
-                            log(`   ✅ writeValue exitoso`);
-                        }
-                        
-                        log(`   🎉 ¡${protocol.name} FUNCIONÓ!`);
-                        updateStatus(`Protocolo funcionando: ${protocol.name}`, 'success');
-                        
-                        // Pausa para ver si imprime
-                        await new Promise(resolve => setTimeout(resolve, 2000));
-                        
-                    } catch (error) {
-                        log(`   ❌ Error: ${error.message}`);
-                    }
-                }
-            }
-        }
-        
-        // PASO 5: Configuración Zebra
-        async function step5_zebraConfig() {
-            if (!await connectToDevice()) return;
-            
-            log('\n🔧 PASO 5: COMANDOS DE CONFIGURACIÓN ZEBRA');
-            log('=' .repeat(50));
-            
-            const configCommands = [
-                { name: 'Host Status', cmd: '~HS' },
-                { name: 'Host Identification', cmd: '~HI' },
-                { name: 'Configuration Status', cmd: '^XA^HH^XZ' },
-                { name: 'Print Configuration', cmd: '~WC' },
-                { name: 'Head Test Fatal', cmd: '~JT' },
-                { name: 'Cancel All', cmd: '~JA' }
-            ];
-            
-            // Buscar características escribibles conocidas
-            const zebraChar = discoveredServices
-                .find(s => s.uuid === '00001801-0000-1000-8000-00805f9b34fb')
-                ?.characteristics
-                .find(c => c.uuid === '00002b29-0000-1000-8000-00805f9b34fb');
-            
-            if (!zebraChar) {
-                log('❌ No se encontró la característica Zebra conocida');
-                return;
-            }
-            
-            for (const config of configCommands) {
-                log(`\n⚙️ Enviando: ${config.name} (${config.cmd})`);
-                
-                try {
-                    const data = new TextEncoder().encode(config.cmd);
-                    
-                    if (zebraChar.properties.writeWithoutResponse) {
-                        await zebraChar.characteristic.writeValueWithoutResponse(data);
-                    } else {
-                        await zebraChar.characteristic.writeValue(data);
-                    }
-                    
-                    log(`   ✅ Comando enviado exitosamente`);
-                    
-                    // Pausa entre comandos
-                    await new Promise(resolve => setTimeout(resolve, 1000));
-                    
-                } catch (error) {
-                    log(`   ❌ Error: ${error.message}`);
-                }
-            }
-        }
-        
-        // Auto-verificar Bluetooth al cargar
-        window.onload = function() {
-            if ('bluetooth' in navigator) {
-                log('✅ Web Bluetooth API disponible');
-                updateStatus('Listo para investigación profunda', 'success');
-            } else {
-                log('❌ Web Bluetooth API no disponible');
-                updateStatus('Web Bluetooth no soportado', 'error');
-            }
-        };
+        // Limpiar al cerrar la página
+        window.addEventListener('beforeunload', disconnectSerial);
     </script>
 </body>
 </html>
