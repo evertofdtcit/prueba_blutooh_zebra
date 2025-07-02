@@ -2,71 +2,114 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Test Impresora Zebra</title>
+  <title>Impresión Zebra con BrowserPrint.js</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <script src="BrowserPrint-3.1.250.min.js"></script>
+  
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      text-align: center;
+      background-color: #f4f4f4;
+      color: #333;
+    }
+    h1 {
+      color: #2c3e50;
+      margin-bottom: 40px;
+    }
+    button {
+      padding: 15px 30px;
+      font-size: 18px;
+      cursor: pointer;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      margin: 10px;
+      transition: background-color 0.3s ease;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    button:active {
+      background-color: #004085;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+    /* Estilos para el mensaje de alerta más amigable */
+    .message-container {
+        margin-top: 20px;
+        padding: 15px;
+        border-radius: 5px;
+        font-size: 16px;
+        display: none; /* Oculto por defecto */
+    }
+    .message-success {
+        background-color: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+    }
+    .message-error {
+        background-color: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+    }
+  </style>
 </head>
 <body>
   <h1>Prueba de impresión Zebra</h1>
 
-  <!-- Impresión desde PC (Wi-Fi o USB) -->
-  <button onclick="imprimirEtiqueta()">Imprimir desde PC</button>
-  <button onclick="imprimirEtiquetaBrowserPrint()">
-    Imprimir Etiqueta con Browser Print
+  <button onclick="imprimirEtiqueta()">
+    Imprimir Etiqueta
   </button>
 
+  <div id="message" class="message-container"></div>
 
   <script>
-
-
-    function imprimirEtiqueta() {
-      BrowserPrint.getDefaultDevice("printer", function(printer) {
-        const zpl = "^XA^FO50,50^ADN,36,20^FD¡Hola desde Zebra por Wi-Fi!^FS^XZ";
-        printer.send(zpl, function() {
-          alert("Etiqueta enviada correctamente");
-        }, function(error) {
-          alert("Error al imprimir: " + error);
-        });
-      }, function() {
-        alert("No se detectó una impresora por defecto.");
-      });
+    // Función para mostrar mensajes en la UI
+    function showMessage(text, type) {
+        const messageDiv = document.getElementById('message');
+        messageDiv.textContent = text;
+        messageDiv.className = 'message-container'; // Resetear clases
+        if (type === 'success') {
+            messageDiv.classList.add('message-success');
+        } else if (type === 'error') {
+            messageDiv.classList.add('message-error');
+        }
+        messageDiv.style.display = 'block'; // Mostrar
     }
 
- function imprimirEtiquetaBrowserPrint() {
-        // Tu código ZPL para la etiqueta.
-        // Puedes cambiar este texto o hacerlo dinámico.
-        const zplData = '^XA^FO50,50^ADN,36,20^FD¡Hola Zebra ZD421!^FS^XZ';
+    // Función para imprimir utilizando la librería BrowserPrint.js
+    // Esta función se comunicará con la aplicación "Zebra Browser Print"
+    // que debe estar corriendo en el dispositivo (PC o Android).
+    function imprimirEtiqueta() {
+      // 1. Verifica si la librería BrowserPrint está cargada.
+      // Es crucial que 'BrowserPrint-3.1.250.min.js' se cargue ANTES de llamar a esto.
+      if (typeof BrowserPrint === 'undefined') {
+        showMessage("Error: La librería BrowserPrint.js no está cargada. Asegúrate de que el archivo sea accesible y que la página se sirva desde un servidor web.", 'error');
+        return;
+      }
 
-        // La URL por defecto a la que tu JavaScript enviará el ZPL.
-        // Browser Print crea un servidor local en esta dirección y puerto.
-        const browserPrintUrl = "http://localhost:9100/zebra/v1/printer/print";
+      // 2. Obtiene el dispositivo de impresora predeterminado configurado en la aplicación Browser Print.
+      BrowserPrint.getDefaultDevice("printer", function(printer) {
+        // 3. Define el código ZPL para tu etiqueta.
+        const zpl = "^XA^FO50,50^ADN,36,20^FD¡Hola desde BrowserPrint.js!^FS^XZ";
 
-        // Usamos 'fetch' para enviar la solicitud POST al servicio de Browser Print
-        fetch(browserPrintUrl, {
-            method: 'POST', // Siempre usa POST para enviar comandos
-            headers: {
-                'Content-Type': 'text/plain' // Indicamos que el cuerpo es texto plano (ZPL)
-            },
-            body: zplData // El cuerpo de la solicitud es tu código ZPL
-        })
-        .then(response => {
-            // Verificamos si la respuesta del servidor fue exitosa (código de estado 200-299)
-            if (response.ok) {
-                return response.text(); // Leemos la respuesta como texto
-            }
-            // Si hubo un error en la respuesta HTTP, lanzamos una excepción
-            throw new Error('Error en la respuesta del servidor de Browser Print: ' + response.statusText);
-        })
-        .then(data => {
-            // Esto se ejecuta si la impresión se envió con éxito (el servidor de Browser Print respondió OK)
-            console.log('Impresión enviada con éxito:', data);
-            alert('Etiqueta enviada correctamente con Zebra Browser Print!');
-        })
-        .catch(error => {
-            // Esto se ejecuta si hubo un error en la solicitud (ej. Browser Print no está corriendo)
-            // o si la respuesta del servidor fue un error.
-            console.error('Error al imprimir con Browser Print:', error);
-            alert('Error al imprimir con Browser Print: ' + error.message + '\n\nAsegúrate de que:\n1. La aplicación "Zebra Browser Print" esté corriendo en tu teléfono.\n2. Tu impresora esté conectada y seleccionada en Browser Print.');
+        // 4. Envía el código ZPL a la impresora seleccionada.
+        printer.send(zpl, function() {
+          // Callback de éxito
+          showMessage("Etiqueta enviada correctamente.", 'success');
+        }, function(error) {
+          // Callback de error al enviar a la impresora
+          showMessage("Error al imprimir: " + error.message + "\n\nAsegúrate de que la impresora esté encendida, conectada y lista en la aplicación Browser Print.", 'error');
+          console.error("Error al enviar a impresora:", error);
         });
+      }, function(errorCallback) {
+        // Callback de error si no se detecta o no se puede conectar a la impresora por defecto.
+        showMessage("No se detectó una impresora por defecto. Asegúrate de que la aplicación Browser Print esté corriendo y la impresora configurada en ella.\nError: " + errorCallback.message, 'error');
+        console.error("Error al obtener impresora por defecto:", errorCallback);
+      });
     }
   </script>
 </body>
