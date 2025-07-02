@@ -11,18 +11,6 @@
   <!-- Impresión desde PC (Wi-Fi o USB) -->
   <button onclick="imprimirEtiqueta()">Imprimir desde PC</button>
 
-  <br><br>
-
-  <!-- Impresión desde Android (Bluetooth) -->
-<a href="intent://com.zebra.printconnect.print.PassthroughService#Intent;
-action=com.zebra.printconnect.intent.action.PRINT;
-category=android.intent.category.DEFAULT;
-S.com.zebra.printconnect.intent.extra.FORMAT_TYPE=ZPL;
-S.com.zebra.printconnect.intent.extra.FORMAT_DATA=%5EXA%5EFO50%2C50%5EADN%2C36%2C20%5EFDDesde%20el%20celular%5EFS%5EXZ;
-package=com.zebra.printconnect;
-end">
-  Imprimir desde Android con Bluetooth (Intento Final)
-</a>
 
 <p>
     <a id="printLink" href="#">
@@ -32,9 +20,7 @@ end">
 
   <script>
 
-  const zplCode = "^XA^FO100,100^ADN,36,20^FDINTENT DINÁMICO^FS^XZ";
-  const intentHref = crearIntentZPL(zplCode);
-  document.getElementById("linkIntent").href = intentHref;
+
     function imprimirEtiqueta() {
       BrowserPrint.getDefaultDevice("printer", function(printer) {
         const zpl = "^XA^FO50,50^ADN,36,20^FD¡Hola desde Zebra por Wi-Fi!^FS^XZ";
@@ -48,14 +34,11 @@ end">
       });
     }
 
-  // Tu contenido ZPL para la etiqueta
-    const zplData = '^XA^FO50,50^ADN,36,20^FDProbando desde la web^FS^XZ';
-    // Codificamos el ZPL para que sea seguro en una URL
-    const encodedZpl = encodeURIComponent(zplData);
-    // Construimos la URL de deep link oficial de PrintConnect
-    const deepLinkUrl = `printconnect://v1/print/zpl?data=${encodedZpl}`;
-    // Asignamos la URL al enlace
-    document.getElementById('printLink').href = deepLinkUrl;
+  const zplData = '^XA^FO50,50^ADN,36,20^FDProbando desde la web^FS^XZ';
+        const encodedZpl = encodeURIComponent(zplData);
+        const deepLinkUrl = `printconnect://v1/print/zpl?data=${encodedZpl}`;
+        document.getElementById('printLink').href = deepLinkUrl;
+        console.log("Deep Link generado:", deepLinkUrl);
   </script>
 </body>
 </html>
