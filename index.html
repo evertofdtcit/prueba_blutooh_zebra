@@ -24,6 +24,12 @@ end">
   Imprimir desde Android con Bluetooth (Intento Final)
 </a>
 
+<p>
+    <a id="printLink" href="#">
+      Imprimir Etiqueta
+    </a>
+  </p>
+
   <script>
 
   const zplCode = "^XA^FO100,100^ADN,36,20^FDINTENT DINÁMICO^FS^XZ";
@@ -41,6 +47,15 @@ end">
         alert("No se detectó una impresora por defecto.");
       });
     }
+
+  // Tu contenido ZPL para la etiqueta
+    const zplData = '^XA^FO50,50^ADN,36,20^FDProbando desde la web^FS^XZ';
+    // Codificamos el ZPL para que sea seguro en una URL
+    const encodedZpl = encodeURIComponent(zplData);
+    // Construimos la URL de deep link oficial de PrintConnect
+    const deepLinkUrl = `printconnect://v1/print/zpl?data=${encodedZpl}`;
+    // Asignamos la URL al enlace
+    document.getElementById('printLink').href = deepLinkUrl;
   </script>
 </body>
 </html>
