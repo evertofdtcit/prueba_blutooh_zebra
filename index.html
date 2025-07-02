@@ -12,18 +12,14 @@
   <button onclick="imprimirEtiqueta()">Imprimir desde PC</button>
 
   <br><br>
-<a href="intent://com.zebra.printconnect.print.PassthroughService/#Intent;
-action=com.zebra.printconnect.intent.action.PRINT;
-scheme=com.zebra.printconnect;
-package=com.zebra.printconnect;
-S.com.zebra.printconnect.intent.extra.FORMAT_TYPE=ZPL;
-S.com.zebra.printconnect.intent.extra.FORMAT_DATA=%5EXA%5EFO50%2C50%5EADN%2C36%2C20%5EFDDesde%20el%20celular%5EFS%5EXZ;
-end">
-  Imprimir desde Android con Bluetooth
-</a>
+
   <!-- Impresión desde Android (Bluetooth) -->
-<a href="tel:123456789">Llamar al 123456789</a>
-<a href="intent:tel:123456789#Intent;scheme=tel;package=com.android.phone;end">Llamar (explícito)</a>
+<a href="intent:?action=com.zebra.printconnect.intent.action.PRINT&amp;com.zebra.printconnect.intent.extra.FORMAT_TYPE=ZPL&amp;com.zebra.printconnect.intent.extra.FORMAT_DATA=%5EXA%5EFO50%2C50%5EADN%2C36%2C20%5EFDDesde%20el%20celular%5EFS%5EXZ#Intent;
+scheme=printconnect;
+package=com.zebra.printconnect;
+end">
+  Imprimir desde Android con Bluetooth (versión 2)
+</a>
 
   <script>
 
