@@ -10,13 +10,10 @@
 
   <!-- Impresión desde PC (Wi-Fi o USB) -->
   <button onclick="imprimirEtiqueta()">Imprimir desde PC</button>
+  <button onclick="imprimirEtiquetaBrowserPrint()">
+    Imprimir Etiqueta con Browser Print
+  </button>
 
-
-<p>
-    <a id="printLink" href="#">
-      Imprimir Etiqueta
-    </a>
-  </p>
 
   <script>
 
@@ -34,11 +31,43 @@
       });
     }
 
-  const zplData = '^XA^FO50,50^ADN,36,20^FDProbando desde la web^FS^XZ';
-        const encodedZpl = encodeURIComponent(zplData);
-        const deepLinkUrl = `printconnect://v1/print/zpl?data=${encodedZpl}`;
-        document.getElementById('printLink').href = deepLinkUrl;
-        console.log("Deep Link generado:", deepLinkUrl);
+ function imprimirEtiquetaBrowserPrint() {
+        // Tu código ZPL para la etiqueta.
+        // Puedes cambiar este texto o hacerlo dinámico.
+        const zplData = '^XA^FO50,50^ADN,36,20^FD¡Hola Zebra ZD421!^FS^XZ';
+
+        // La URL por defecto a la que tu JavaScript enviará el ZPL.
+        // Browser Print crea un servidor local en esta dirección y puerto.
+        const browserPrintUrl = "http://localhost:9100/zebra/v1/printer/print";
+
+        // Usamos 'fetch' para enviar la solicitud POST al servicio de Browser Print
+        fetch(browserPrintUrl, {
+            method: 'POST', // Siempre usa POST para enviar comandos
+            headers: {
+                'Content-Type': 'text/plain' // Indicamos que el cuerpo es texto plano (ZPL)
+            },
+            body: zplData // El cuerpo de la solicitud es tu código ZPL
+        })
+        .then(response => {
+            // Verificamos si la respuesta del servidor fue exitosa (código de estado 200-299)
+            if (response.ok) {
+                return response.text(); // Leemos la respuesta como texto
+            }
+            // Si hubo un error en la respuesta HTTP, lanzamos una excepción
+            throw new Error('Error en la respuesta del servidor de Browser Print: ' + response.statusText);
+        })
+        .then(data => {
+            // Esto se ejecuta si la impresión se envió con éxito (el servidor de Browser Print respondió OK)
+            console.log('Impresión enviada con éxito:', data);
+            alert('Etiqueta enviada correctamente con Zebra Browser Print!');
+        })
+        .catch(error => {
+            // Esto se ejecuta si hubo un error en la solicitud (ej. Browser Print no está corriendo)
+            // o si la respuesta del servidor fue un error.
+            console.error('Error al imprimir con Browser Print:', error);
+            alert('Error al imprimir con Browser Print: ' + error.message + '\n\nAsegúrate de que:\n1. La aplicación "Zebra Browser Print" esté corriendo en tu teléfono.\n2. Tu impresora esté conectada y seleccionada en Browser Print.');
+        });
+    }
   </script>
 </body>
 </html>
