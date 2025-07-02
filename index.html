@@ -14,11 +14,14 @@
   <br><br>
 
   <!-- Impresión desde Android (Bluetooth) -->
-<a href="intent:?action=com.zebra.printconnect.intent.action.PRINT&amp;com.zebra.printconnect.intent.extra.FORMAT_TYPE=ZPL&amp;com.zebra.printconnect.intent.extra.FORMAT_DATA=%5EXA%5EFO50%2C50%5EADN%2C36%2C20%5EFDDesde%20el%20celular%5EFS%5EXZ#Intent;
-scheme=printconnect;
+<a href="intent://com.zebra.printconnect.print.PassthroughService#Intent;
+action=com.zebra.printconnect.intent.action.PRINT;
+category=android.intent.category.DEFAULT;
+S.com.zebra.printconnect.intent.extra.FORMAT_TYPE=ZPL;
+S.com.zebra.printconnect.intent.extra.FORMAT_DATA=%5EXA%5EFO50%2C50%5EADN%2C36%2C20%5EFDDesde%20el%20celular%5EFS%5EXZ;
 package=com.zebra.printconnect;
 end">
-  Imprimir desde Android con Bluetooth (versión 2)
+  Imprimir desde Android con Bluetooth (Intento Final)
 </a>
 
   <script>
