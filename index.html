@@ -14,10 +14,13 @@
   <br><br>
 
   <!-- Impresión desde Android (Bluetooth) -->
-<a href="intent:#Intent;action=com.zebra.printconnect.intent.action.PRINT;S.com.zebra.printconnect.intent.extra.FORMAT_TYPE=ZPL;S.com.zebra.printconnect.intent.extra.FORMAT_DATA=%5EXA%0A%5EFO100%2C100%0A%5EADN%2C36%2C20%0A%5EFDTEST%20DESDE%20INTENT%0A%5EFS%0A%5EXZ;end">
-  Imprimir prueba desde Android
-</a>
+<a id="linkIntent" href="#">Imprimir con Intent</a>
+
   <script>
+
+  const zplCode = "^XA^FO100,100^ADN,36,20^FDINTENT DINÁMICO^FS^XZ";
+  const intentHref = crearIntentZPL(zplCode);
+  document.getElementById("linkIntent").href = intentHref;
     function imprimirEtiqueta() {
       BrowserPrint.getDefaultDevice("printer", function(printer) {
         const zpl = "^XA^FO50,50^ADN,36,20^FD¡Hola desde Zebra por Wi-Fi!^FS^XZ";
