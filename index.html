@@ -7,13 +7,17 @@
 </head>
 <body>
   <h1>Prueba de impresión Zebra</h1>
-  <button onclick="imprimirEtiqueta()">Imprimir etiqueta</button>
- <a href="intent:#Intent;action=com.zebra.printconnect.intent.action.PRINT;
-S.com.zebra.printconnect.intent.extra.FORMAT_TYPE=ZPL;
-S.com.zebra.printconnect.intent.extra.FORMAT_DATA=%5EXA%5EFO50%2C50%5EADN%2C36%2C20%5EFDDesde%20el%20celular%5EFS%5EXZ;
-end">
+
+  <!-- Impresión desde PC (Wi-Fi o USB) -->
+  <button onclick="imprimirEtiqueta()">Imprimir desde PC</button>
+
+  <br><br>
+
+  <!-- Impresión desde Android (Bluetooth) -->
+  <a href="intent:#Intent;action=com.zebra.printconnect.intent.action.PRINT;S.com.zebra.printconnect.intent.extra.FORMAT_TYPE=ZPL;S.com.zebra.printconnect.intent.extra.FORMAT_DATA=%5EXA%5EFO50%2C50%5EADN%2C36%2C20%5EFDDesde%20el%20celular%5EFS%5EXZ;end">
     Imprimir desde Android con Bluetooth
   </a>
+
   <script>
     function imprimirEtiqueta() {
       BrowserPrint.getDefaultDevice("printer", function(printer) {
